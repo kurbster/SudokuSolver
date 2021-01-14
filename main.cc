@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <locale.h>
 
 #include "testsudoku.h"
 #include "sudoku.h"
@@ -40,23 +41,29 @@ void readFile(string fname, Board<uint> &board) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 2) { cout << "You must enter 1 file!\n"; exit(0); }
-    string file = argv[1];
-    string size = file.substr(0, file.find('x'));
-    try { stoi(size); }
-    catch (invalid_argument) {
-        cout << "The directory you use must start with the size of the sudoku!!\n";
-        exit(0);
+    if (argc == 1) { cout << "You must enter a file!\n"; exit(0); }
+    bool verbose = false;
+    for (int i = 1; i < argc; i++) {
+        string arg = argv[i];
+        if (arg == "-v") { verbose = true; continue; } 
+        string size = arg.substr(0, arg.find('x'));
+        try { stoi(size); }
+        catch (invalid_argument) {
+            cout << "The directory you use must be in the format NxN!!\n";
+            exit(0);
+        }
+        Board<uint> board(stoi(size));
+        // These are used to keep track of the efficiency of the algorithm
+        uint g = 0, m = 0;
+        readFile(arg, board);
+        solve(board, g, m);
+        if (verbose) board.print();
+        setlocale(LC_NUMERIC, "");
+        printf("Puzzle name %s\n", arg.c_str());
+        printf("Num guesses %'u\n", g);
+        printf("Num of memory accesses %'u\n", m);
+        if (test_solution(board)) cout << "The solution was correct!\n\n";
+        else cout << "WE PRODUCED AN INCORRECT SOLUTION!!!\n\n";
     }
-    Board<uint> board(stoi(size));
-    // These are used to keep track of the efficiency of the algorithm
-    uint g = 0, m = 0;
-    readFile(file, board);
-    solve(board, g, m);
-    board.print();
-    printf("Num guesses %u\n", g);
-    printf("Num of memory accesses %u\n", m);
-    if (test_solution(board)) cout << "The solution was correct!\n";
-    else cout << "WE PRODUCED AN INCORRECT SOLUTION!!!\n";
     return 69;
 }
