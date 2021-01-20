@@ -7,6 +7,9 @@ bool possible(Board<uint> &board, uint r, uint c, uint n, uint &mem_access) {
         mem_access++;
         // check (row, 0....size-1)
         if (board(r, i) == n) return false;
+        // If we already check this value in the row
+        // Don't check it again in the column
+        if (i == r) continue;
         mem_access++;
         // check (0....size-1, col)
         if (board(i, c) == n) return false;
@@ -21,6 +24,7 @@ bool possible(Board<uint> &board, uint r, uint c, uint n, uint &mem_access) {
     // through the blocks height and width
     for (uint i = 0; i < height; i++) {
         for (uint j = 0; j < width; j++) {
+            if (rowNum+i == r || colNum+j == c) continue;
             mem_access++;
             if (board(rowNum+i, colNum+j) == n) return false;
         }
