@@ -1,15 +1,15 @@
-#include <iostream>
 #include <fstream>
 #include <string>
 #include <locale.h>
 
+#include "heap.h"
 #include "testsudoku.h"
 #include "sudoku.h"
 #include "board.h"
 
 using namespace std;
 
-void readFile(string fname, Board<uint> &board) {
+void readFile(string fname, Board<uint> &board, bset &rows, bset &cols, vector<Coord> &blanks) {
     ifstream file;
     file.open(fname);
     uint size = board.GetSize();
@@ -32,6 +32,12 @@ void readFile(string fname, Board<uint> &board) {
                 // subtract the ascii value further
                 if (value > 9) value -= 7;
                 board(i, j) = value;
+                // If the value of the board is filled
+                // We need to update the bitsets
+                if (value != 0) {
+                    rows[i*size+(value-1)] = 0;
+                    cols[j*size+(value-1)] = 0;
+                } else blanks.push_back(make_pair(i, j));
             }
             // get the \n
             file.get();
@@ -40,22 +46,35 @@ void readFile(string fname, Board<uint> &board) {
     } else { cout << "Not a valid file!!\n" << fname << endl; exit(0); }
 }
 
+
 int main(int argc, char **argv) {
     if (argc == 1) { cout << "You must enter a file!\n"; exit(0); }
     bool verbose = false;
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
         if (arg == "-v") { verbose = true; continue; } 
-        string size = arg.substr(0, arg.find('x'));
-        try { stoi(size); }
-        catch (invalid_argument) {
+        string size_str = arg.substr(0, arg.find('x'));
+        /*
+         * Here I will make the array of bitsets
+         */
+        uint size;
+        try { size = stoi(size_str); }
+        catch (invalid_argument &) {
             cout << "The directory you use must be in the format NxN!!\n";
             exit(0);
         }
-        Board<uint> board(stoi(size));
+        bset rows(size*size); rows.flip();
+        bset cols(size*size); cols.flip();
+        vector<Coord> blanks;
+        Board<uint> board(size);
+        readFile(arg, board, rows, cols, blanks);
+        int numBlanks = blanks.size();
+        Heap *heap;
+        heap = new Heap(numBlanks);
+        // This function will construct our heap from the numbers remaining
+        construct_complement(rows, cols, blanks, heap, size);
         // These are used to keep track of the efficiency of the algorithm
         uint g = 0, m = 0;
-        readFile(arg, board);
         solve(board, g, m);
         if (verbose) board.print();
         setlocale(LC_NUMERIC, "");
@@ -64,6 +83,7 @@ int main(int argc, char **argv) {
         printf("Num of memory accesses %'u\n", m);
         if (test_solution(board)) cout << "The solution was correct!\n\n";
         else cout << "WE PRODUCED AN INCORRECT SOLUTION!!!\n\n";
+        delete heap;
     }
     return 69;
 }
