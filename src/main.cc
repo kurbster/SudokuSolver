@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void readFile(string fname, Board<uint> &board, bset &rows, bset &cols, vector<Coord> &blanks) {
+void readFile(string fname, Board<uint> &board, bset &rows, bset &cols, bset &blocks, vector<Coord> &blanks) {
     ifstream file;
     file.open(fname);
     uint size = board.GetSize();
@@ -35,6 +35,8 @@ void readFile(string fname, Board<uint> &board, bset &rows, bset &cols, vector<C
                 // If the value of the board is filled
                 // We need to update the bitsets
                 if (value != 0) {
+                    uint b = board.GetBlock(i, j);
+                    blocks[b*size+(value-1)] = 0;
                     rows[i*size+(value-1)] = 0;
                     cols[j*size+(value-1)] = 0;
                 } else blanks.push_back(make_pair(i, j));
@@ -65,17 +67,18 @@ int main(int argc, char **argv) {
         }
         bset rows(size*size); rows.flip();
         bset cols(size*size); cols.flip();
+        bset blocks(size*size); blocks.flip();
         vector<Coord> blanks;
         Board<uint> board(size);
-        readFile(arg, board, rows, cols, blanks);
+        readFile(arg, board, rows, cols, blocks, blanks);
         int numBlanks = blanks.size();
         Heap *heap;
         heap = new Heap(numBlanks);
         // This function will construct our heap from the numbers remaining
-        construct_complement(rows, cols, blanks, heap, size);
+        construct_complement(rows, cols, blocks, blanks, heap, size, board);
         // These are used to keep track of the efficiency of the algorithm
         uint g = 0, m = 0;
-        solve(board, g, m);
+        heap_solve(board, g, m, heap);
         if (verbose) board.print();
         setlocale(LC_NUMERIC, "");
         printf("Puzzle name %s\n", arg.c_str());

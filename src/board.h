@@ -20,12 +20,14 @@ public:
     { return data[ y*size+x]; }
     // get dimensions
     unsigned GetSize() const { return size; } 
-    unsigned GetWidth() const { return width; }
-    unsigned GetHeight() const { return height; }
+    unsigned GetWidth() const { return w; }
+    unsigned GetHeight() const { return h; }
+    // Get the block number for these coordinates
+    unsigned GetBlock(unsigned r, unsigned c) const { return (r/h)*h + c/w; }
     // set dimensions for each block
     // format is hxw specified in file
     // for 9x9 ==> 3x3. for 12x12 ==> 3x4
-    void SetBlock(unsigned w, unsigned h) { width=w; height=h; }
+    void SetBlock(unsigned _w, unsigned _h) { w=_w; h=_h; }
     void print() {
         for (uint i = 0; i < size; i++) {
             for (uint j = 0; j < size; j++) {
@@ -45,7 +47,7 @@ public:
         }
     }
 private:
-    unsigned size, width, height;
+    unsigned size, w, h;
     T*       data;
     // to prevent unwanted copying
     Board(const Board<T>&);

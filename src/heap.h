@@ -5,6 +5,8 @@
 #include <cmath>
 #include <vector>
 
+#include "board.h"
+
 using namespace boost;
 using namespace std;
 
@@ -20,18 +22,20 @@ struct Node {
 struct Heap {
     Node* heap;
     int size;
+    void print();
     void heapify(Node*, int);
     void buildHeap();
-    void print();
-    Node* pop();
+    void insert(Node);
+    void decreaseKey(int, uint);
+    Node pop();
     Node* peek();
     Heap();
-    Heap(uint);
+    Heap(int);
     ~Heap();
 };
 
 int left(int);
 int parent(int);
-void construct_complement(bset, bset, vector<Coord>, Heap*, uint);
+void construct_complement(bset, bset, bset, vector<Coord>, Heap*, uint, Board<uint>&);
 
 #endif
